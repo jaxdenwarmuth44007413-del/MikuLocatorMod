@@ -21,6 +21,9 @@ jobs:
 
       - name: Auto Extract and Build
         run: |
+        
+          find . -type f \( -name "*.java" -o -name "*.gradle*" \) -exec sed -i '1s/^\xef\xbb\xbf//' {} +
+
           # 1. 如果仓库里传的是 zip 压缩包，自动解压
           find . -maxdepth 2 -name "*.zip" -exec unzip -o {} \; 2>/dev/null || true
 
