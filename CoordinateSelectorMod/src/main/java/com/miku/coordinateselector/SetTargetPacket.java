@@ -1,4 +1,4 @@
-﻿package com.miku.coordinateselector;
+package com.miku.coordinateselector;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
@@ -12,9 +12,6 @@ import net.minecraftforge.network.NetworkEvent;
 import java.util.function.Supplier;
 
 
-/**
- * Miku Locator -> Wormhole Stabilizer target setter
- */
 public class SetTargetPacket {
 
 
@@ -34,7 +31,6 @@ public class SetTargetPacket {
     ){
 
         this.stabilizerPos = stabilizerPos;
-
         this.targetX = targetX;
         this.targetY = targetY;
         this.targetZ = targetZ;
@@ -46,13 +42,11 @@ public class SetTargetPacket {
     public SetTargetPacket(FriendlyByteBuf buf){
 
         this.stabilizerPos = buf.readBlockPos();
-
         this.targetX = buf.readInt();
         this.targetY = buf.readInt();
         this.targetZ = buf.readInt();
 
     }
-
 
 
 
@@ -68,20 +62,16 @@ public class SetTargetPacket {
 
 
 
-
-
     public void handle(Supplier<NetworkEvent.Context> supplier){
 
 
-        NetworkEvent.Context context = supplier.get();
+        NetworkEvent.Context ctx = supplier.get();
 
 
+        ctx.enqueueWork(() -> {
 
-        context.enqueueWork(() -> {
 
-
-            ServerPlayer player = context.getSender();
-
+            ServerPlayer player = ctx.getSender();
 
             if(player == null)
                 return;
@@ -91,17 +81,17 @@ public class SetTargetPacket {
             ServerLevel level = player.serverLevel();
 
 
-
             BlockEntity be =
                     level.getBlockEntity(this.stabilizerPos);
 
 
 
-            if(be == null){
+            if(!(be instanceof com.supermartijn642.wormhole.StabilizerBlockEntity stabilizer)){
+
 
                 player.sendSystemMessage(
                         Component.literal(
-                                "§c没有找到方块实体"
+                                "不是Wormhole稳定器"
                         )
                 );
 
@@ -110,144 +100,44 @@ public class SetTargetPacket {
 
 
 
-
-
             /*
-             * Wormhole 原生设置目标
+             * 使用 Wormhole 内部目标接口
              */
 
-            if(be instanceof com.supermartijn642.wormhole.StabilizerBlockEntity stabilizer){
+            stabilizer.setTarget(
+                    0,
+                    this.targetX,
+                    this.targetY,
+                    this.targetZ,
+                    level.dimension()
+            );
 
 
 
-                com.supermartijn642.wormhole.portal.PortalTarget target =
+            stabilizer.setChanged();
 
-                        new com.supermartijn642.wormhole.portal.PortalTarget(
 
-                                level.dimension(),
 
-                                this.targetX,
+            level.sendBlockUpdated(
+                    this.stabilizerPos,
+                    be.getBlockState(),
+                    be.getBlockState(),
+                    3
+            );
 
-                                this.targetY,
 
-                                this.targetZ,
 
-                                player.getYRot(),
-
-                                "Miku Target"
-
-                        );
-
-
-
-
-
-                /*
-                 * 写入 Wormhole 目标
-                 */
-
-                stabilizer.setTarget(
-
-                        0,
-
-                        target
-
-                );
-
-
-
-
-
-                stabilizer.setChanged();
-
-
-
-
-
-                level.sendBlockUpdated(
-
-                        this.stabilizerPos,
-
-                        be.getBlockState(),
-
-                        be.getBlockState(),
-
-                        3
-
-                );
-
-
-
-
-
-
-                /*
-                 * 让 Wormhole 执行激活流程
-                 */
-
-                boolean activated =
-                        stabilizer.activate(player);
-
-
-
-
-
-                if(activated){
-
-
-                    player.sendSystemMessage(
-
-                            Component.literal(
-
-                                    "§aMiku Locator: Wormhole 已激活"
-
-                            )
-
-                    );
-
-
-                }else{
-
-
-                    player.sendSystemMessage(
-
-                            Component.literal(
-
-                                    "§cWormhole 激活失败，请检查能量和结构"
-
-                            )
-
-                    );
-
-
-                }
-
-
-
-
-            }else{
-
-
-                player.sendSystemMessage(
-
-                        Component.literal(
-
-                                "§c目标方块不是 Wormhole 稳定器"
-
-                        )
-
-                );
-
-            }
-
-
+            player.sendSystemMessage(
+                    Component.literal(
+                            "Wormhole目标已设置"
+                    )
+            );
 
 
         });
 
 
-
-        context.setPacketHandled(true);
+        ctx.setPacketHandled(true);
 
     }
 
