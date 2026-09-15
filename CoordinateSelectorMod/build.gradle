@@ -78,17 +78,13 @@ minecraft {
 
 
 
-
 repositories {
 
     flatDir {
-
         dirs 'libs'
-
     }
 
 }
-
 
 
 
@@ -99,12 +95,12 @@ dependencies {
 
 
     // Wormhole 1.1.17
-    implementation fg.deobf(
-            files('libs/wormhole-1.1.17-forge-mc1.20.1.jar')
+    implementation files(
+            'libs/wormhole-1.1.17-forge-mc1.20.1.jar'
     )
 
-}
 
+}
 
 
 
@@ -116,13 +112,13 @@ tasks.named('jar', Jar).configure {
 
         attributes([
 
-                'Specification-Title'     : 'coordinate_selector',
+                'Specification-Title': 'coordinate_selector',
 
-                'Specification-Version'   : '1',
+                'Specification-Version': '1',
 
-                'Implementation-Title'    : project.name,
+                'Implementation-Title': project.name,
 
-                'Implementation-Version'  : project.jar.archiveVersion
+                'Implementation-Version': project.jar.archiveVersion
 
         ])
 
