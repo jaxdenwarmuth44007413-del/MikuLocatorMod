@@ -24,6 +24,8 @@ jobs:
           # 1. 如果仓库里传的是 zip 压缩包，自动解压
           find . -maxdepth 2 -name "*.zip" -exec unzip -o {} \; 2>/dev/null || true
 
+          find . -type f -name "*.gradle*" -exec sed -i '1s/^\xef\xbb\xbf//' {} +
+
           # 2. 全盘搜寻 src 目录，自动提到根目录
           find . -type d -name "src" | while read -r srcdir; do
             parent=$(dirname "$srcdir")
