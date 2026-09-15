@@ -1,70 +1,135 @@
-﻿plugins {
-    id 'eclipse'
-    id 'idea'
+plugins {
     id 'net.minecraftforge.gradle' version '[6.0,6.2)'
+    id 'eclipse'
+    id 'maven-publish'
 }
 
-group = 'com.miku'
-version = '1.0.0'
+
+version = '1.0.2'
+group = 'com.miku.coordinateselector'
+
 
 base {
     archivesName = 'coordinate_selector'
 }
 
+
 java {
-    toolchain.languageVersion = JavaLanguageVersion.of(17)
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
 }
+
 
 minecraft {
-    mappings channel: 'official', version: '1.20.1'
-    copyIdeResources = true
+
+    mappings channel: 'official',
+             version: '1.20.1'
+
+
+    runs {
+
+        client {
+
+            workingDirectory project.file('run')
+
+
+            property 'forge.logging.markers',
+                    'REGISTRIES'
+
+
+            property 'forge.logging.console.level',
+                    'debug'
+
+
+            mods {
+
+                coordinate_selector {
+
+                    source sourceSets.main
+
+                }
+
+            }
+
+        }
+
+
+        server {
+
+            workingDirectory project.file('run')
+
+
+            mods {
+
+                coordinate_selector {
+
+                    source sourceSets.main
+
+                }
+
+            }
+
+        }
+
+    }
+
 }
+
+
+
 
 repositories {
-    maven { url = 'https://maven.minecraftforge.net/' }
-    mavenCentral()
+
+    flatDir {
+
+        dirs 'libs'
+
+    }
+
 }
+
+
+
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.20.1-47.2.0'
+
+
+    minecraft 'net.minecraftforge:forge:1.20.1-47.1.0'
+
+
+    // Wormhole 1.1.17
+    implementation fg.deobf(
+            files('libs/wormhole-1.1.17-forge-mc1.20.1.jar')
+    )
+
 }
 
-tasks.named('processResources', ProcessResources).configure {
-    var replaceProperties = [
-            minecraft_version: '1.20.1',
-            minecraft_version_range: '[1.20.1,1.21)',
-            forge_version: '47.2.0',
-            forge_version_range: '[47,)',
-            loader_version_range: '[47,)',
-            mod_id: 'coordinate_selector',
-            mod_name: 'Coordinate Selector',
-            mod_license: 'MIT',
-            mod_version: '1.0.0',
-            mod_authors: 'Miku Fans',
-            mod_description: 'Coordinate Selector for Wormhole'
-    ]
-    inputs.properties replaceProperties
 
-    filesMatching(['META-INF/mods.toml', 'pack.mcmeta']) {
-        expand replaceProperties + [project: project]
-    }
-}
+
 
 tasks.named('jar', Jar).configure {
+
+
     manifest {
+
+
         attributes([
+
                 'Specification-Title'     : 'coordinate_selector',
-                'Specification-Vendor'    : 'miku',
+
                 'Specification-Version'   : '1',
+
                 'Implementation-Title'    : project.name,
-                'Implementation-Version'  : project.jar.archiveVersion,
-                'Implementation-Vendor'   : 'miku',
-                'Implementation-Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+
+                'Implementation-Version'  : project.jar.archiveVersion
+
         ])
+
     }
-    finalizedBy 'reobfJar'
+
 }
 
-tasks.withType(JavaCompile).configureEach {
-    options.encoding = 'UTF-8'
-}
+
+
+jar.finalizedBy('reobfJar')
