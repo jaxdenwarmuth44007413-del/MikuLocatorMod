@@ -1,5 +1,7 @@
 ﻿package com.miku.coordinateselector;
 
+import com.supermartijn642.wormhole.StabilizerBlockEntity;
+import com.supermartijn642.wormhole.portal.PortalTarget;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
