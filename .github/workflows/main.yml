@@ -14,17 +14,107 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Gradle
+      - name: Setup Gradle 8.1.1
         uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.1.1'
 
-      - name: Build with Gradle
+      - name: Auto Fix and Build
         run: |
-          chmod +x gradlew 2>/dev/null || true
-          if [ -f "gradlew" ]; then
-            ./gradlew build --no-daemon
-          else
-            gradle build --no-daemon
+          # 1. 自动容错：如果文件套在子文件夹里，自动提取到根目录
+          if [ -d "CoordinateSelectorMod" ] && [ ! -d "src" ]; then
+            echo "Auto extracting files from subfolder..."
+            mv CoordinateSelectorMod/* . 2>/dev/null || true
           fi
+
+          # 2. 自动补全 settings.gradle
+          if [ ! -f "settings.gradle" ]; then
+            cat << 'EOF' > settings.gradle
+          pluginManagement {
+              repositories {
+                  gradlePluginPortal()
+                  maven { url = 'https://maven.minecraftforge.net/' }
+              }
+          }
+          EOF
+          fi
+
+          # 3. 自动补全 build.gradle
+          if [ ! -f "build.gradle" ]; then
+            cat << 'EOF' > build.gradle
+          plugins {
+              id 'eclipse'
+              id 'idea'
+              id 'net.minecraftforge.gradle' version '[6.0,6.2)'
+          }
+
+          group = 'com.miku'
+          version = '1.0.0'
+
+          base {
+              archivesName = 'coordinate_selector'
+          }
+
+          sourceCompatibility = targetCompatibility = '17'
+
+          minecraft {
+              mappings channel: 'official', version: '1.20.1'
+              copyIdeResources = true
+          }
+
+          repositories {
+              maven { url = 'https://maven.minecraftforge.net/' }
+              mavenCentral()
+          }
+
+          dependencies {
+              minecraft 'net.minecraftforge:forge:1.20.1-47.2.0'
+          }
+
+          tasks.named('processResources', ProcessResources).configure {
+              var replaceProperties = [
+                      minecraft_version: '1.20.1',
+                      minecraft_version_range: '[1.20.1,1.21)',
+                      forge_version: '47.2.0',
+                      forge_version_range: '[47,)',
+                      loader_version_range: '[47,)',
+                      mod_id: 'coordinate_selector',
+                      mod_name: 'Coordinate Selector',
+                      mod_license: 'MIT',
+                      mod_version: '1.0.0',
+                      mod_authors: 'Miku Fans',
+                      mod_description: 'Coordinate Selector for Wormhole'
+              ]
+              inputs.properties replaceProperties
+
+              filesMatching(['META-INF/mods.toml', 'pack.mcmeta']) {
+                  expand replaceProperties + [project: project]
+              }
+          }
+
+          tasks.named('jar', Jar).configure {
+              manifest {
+                  attributes([
+                          'Specification-Title'     : 'coordinate_selector',
+                          'Specification-Vendor'    : 'miku',
+                          'Specification-Version'   : '1',
+                          'Implementation-Title'    : project.name,
+                          'Implementation-Version'  : project.jar.archiveVersion,
+                          'Implementation-Vendor'   : 'miku',
+                          'Implementation-Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+                  ])
+              }
+              finalizedBy 'reobfJar'
+          }
+
+          tasks.withType(JavaCompile).configureEach {
+              options.encoding = 'UTF-8'
+          }
+          EOF
+          fi
+
+          # 4. 运行正式编译
+          gradle build --no-daemon
 
       - name: Upload Mod Jar
         uses: actions/upload-artifact@v4
