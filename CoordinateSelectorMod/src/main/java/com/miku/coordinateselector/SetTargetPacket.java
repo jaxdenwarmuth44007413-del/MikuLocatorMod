@@ -65,28 +65,41 @@ public class SetTargetPacket {
 
             String currentDim = level.dimension().location().toString();
 
-            // 写入 Wormhole 稳定器的目标槽位（注入 target0）
-            CompoundTag tag = be.saveWithFullMetadata();
-            ListTag targetsList = new ListTag();
-            CompoundTag target0 = new CompoundTag();
-            target0.putString("dimension", currentDim);
-            target0.putInt("x", this.targetX);
-            target0.putInt("y", this.targetY);
-            target0.putInt("z", this.targetZ);
-            target0.putString("name", "Target (" + this.targetX + ", " + this.targetY + ", " + this.targetZ + ")");
-            targetsList.add(target0);
+            // 调用 Wormhole 原生目标设置
+if (be instanceof com.supermartijn642.wormhole.StabilizerBlockEntity stabilizer) {
 
-            tag.put("targets", targetsList);
-            tag.putInt("selectedTarget", 0);
-            tag.putInt("target", 0);
-            // 兼容辅助字段
-            tag.putInt("targetX", this.targetX);
-            tag.putInt("targetY", this.targetY);
-            tag.putInt("targetZ", this.targetZ);
-            tag.putString("targetDimension", currentDim);
+    com.supermartijn642.wormhole.portal.PortalTarget target =
+            new com.supermartijn642.wormhole.portal.PortalTarget(
+                    level.dimension(),
+                    this.targetX,
+                    this.targetY,
+                    this.targetZ,
+                    player.getYRot(),
+                    "Miku Target"
+            );
 
-            be.load(tag);
-            be.setChanged();
+
+    // 设置第0个目标
+    stabilizer.setTarget(
+            0,
+            target
+    );
+
+
+    stabilizer.setChanged();
+
+
+    level.sendBlockUpdated(
+            this.stabilizerPos,
+            be.getBlockState(),
+            be.getBlockState(),
+            3
+    );
+
+
+    // 激活 Wormhole
+    stabilizer.activate(player);
+}
             level.sendBlockUpdated(this.stabilizerPos, be.getBlockState(), be.getBlockState(), 3);
 
             // 扣除 1 点耐久，达到 10 次损毁
