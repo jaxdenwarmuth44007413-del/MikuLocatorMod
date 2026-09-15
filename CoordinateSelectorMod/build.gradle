@@ -49,7 +49,6 @@ minecraft {
                 }
 
             }
-
         }
 
 
@@ -94,17 +93,11 @@ dependencies {
     minecraft 'net.minecraftforge:forge:1.20.1-47.1.0'
 
 
-    // Wormhole
-    implementation files(
-        'libs/wormhole-1.1.17-forge-mc1.20.1.jar'
+    // 自动加载 libs 文件夹所有依赖
+    implementation fileTree(
+            dir: 'libs',
+            include: ['*.jar']
     )
-
-
-    // SuperMartijn642 Core Lib
-    implementation files(
-        'libs/supermartijn642corelib-1.1.17-forge-mc1.20.1.jar'
-    )
-
 
 }
 
@@ -116,19 +109,20 @@ tasks.named('jar', Jar).configure {
 
         attributes([
 
-            'Specification-Title': 'coordinate_selector',
+                'Specification-Title': 'coordinate_selector',
 
-            'Specification-Version': '1',
+                'Specification-Version': '1',
 
-            'Implementation-Title': project.name,
+                'Implementation-Title': project.name,
 
-            'Implementation-Version': project.jar.archiveVersion
+                'Implementation-Version': project.jar.archiveVersion
 
         ])
 
     }
 
 }
+
 
 
 jar.finalizedBy('reobfJar')
