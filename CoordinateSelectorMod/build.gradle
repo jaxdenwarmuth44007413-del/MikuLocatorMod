@@ -33,10 +33,8 @@ minecraft {
 
             workingDirectory project.file('run')
 
-
             property 'forge.logging.markers',
                     'REGISTRIES'
-
 
             property 'forge.logging.console.level',
                     'debug'
@@ -96,15 +94,15 @@ dependencies {
     minecraft 'net.minecraftforge:forge:1.20.1-47.1.0'
 
 
-    // Wormhole 1.1.17
+    // Wormhole
     implementation files(
-            'libs/wormhole-1.1.17-forge-mc1.20.1.jar'
+        'libs/wormhole-1.1.17-forge-mc1.20.1.jar'
     )
 
 
-    // Wormhole 前置库
+    // SuperMartijn642 Core Lib
     implementation files(
-            'libs/supermartijn642corelib-1.1.17-forge-mc1.20.1.jar'
+        'libs/supermartijn642corelib-1.1.17-forge-mc1.20.1.jar'
     )
 
 
@@ -114,25 +112,23 @@ dependencies {
 
 tasks.named('jar', Jar).configure {
 
-
     manifest {
 
         attributes([
 
-                'Specification-Title': 'coordinate_selector',
+            'Specification-Title': 'coordinate_selector',
 
-                'Specification-Version': '1',
+            'Specification-Version': '1',
 
-                'Implementation-Title': project.name,
+            'Implementation-Title': project.name,
 
-                'Implementation-Version': project.jar.archiveVersion
+            'Implementation-Version': project.jar.archiveVersion
 
         ])
 
     }
 
 }
-
 
 
 jar.finalizedBy('reobfJar')
